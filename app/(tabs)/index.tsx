@@ -1,98 +1,168 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useGetAllSessionsFnQuery } from "@/redux/features/session-api/session-api";
+import { useGetUserDetailsQuery } from "@/redux/features/user-api/user-api";
+import { useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+  Image,
+} from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { moderateScale, verticalScale } from "react-native-size-matters";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const Index = () => {
+  const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  // Query with pagination params
+  const {
+    data: sessionsResponse,
+    isLoading,
+    isFetching,
+    refetch: refetchSessions,
+  } = useGetAllSessionsFnQuery(
+    { page, limit },
+    { refetchOnMountOrArgChange: true }
   );
-}
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      setPage(1);
+      await Promise.all([refetchSessions()]);
+    } catch (err) {
+      console.error("Refresh failed:", err);
+    }
+    setRefreshing(false);
+  }, [refetchSessions]);
+
+  const sessions = sessionsResponse?.data || [];
+  const pagination = sessionsResponse?.pagination;
+  // console.log(sessions);
+
+  const loadMore = () => {
+    if (pagination && page < pagination.pages && !isFetching) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  if (isLoading && page === 1) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#6566fc" />
+      </View>
+    );
+  }
+
+  return (
+    <GestureHandlerRootView>
+      <SafeAreaProvider
+        style={{ padding: moderateScale(20), backgroundColor: "white" }}
+      >
+        <SafeAreaView className="min-h-screen">
+          <Text
+            style={{ fontFamily: "Poppins-Regular" }}
+            className="text-4xl font-extrabold tracking-tighter"
+          >
+            Welcome To Academy Of Financial Engineering
+          </Text>
+
+          <View style={{ marginVertical: verticalScale(20) }}>
+            <Text className="text-2xl font-bold text-primary">
+              Our Sessions
+            </Text>
+          </View>
+
+          <FlatList
+            data={sessions}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: "/form",
+                    params: {
+                      id: item._id,
+                    },
+                  })
+                }
+              >
+                <View className="mb-4 bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                  {/* Image Section */}
+                  <Image
+                    source={{ uri: item.thumbnail }}
+                    className="w-full h-48"
+                    resizeMode="cover"
+                  />
+
+                  {/* Content Section */}
+                  <View className="p-4">
+                    {/* Title */}
+                    <Text
+                      className="text-xl font-bold text-gray-800 mb-2"
+                      numberOfLines={2}
+                    >
+                      {item.title}
+                    </Text>
+
+                    {/* Session Details */}
+                    <View className="flex-row items-center justify-between mt-2">
+                      <View className="flex-row items-center bg-primary/10 px-3 py-1.5 rounded-full">
+                        <Text className="text-sm font-semibold text-primary">
+                          {item.sessionType}
+                        </Text>
+                      </View>
+
+                      <View className="flex-row items-center bg-gray-100 px-3 py-1.5 rounded-full">
+                        <Text className="text-sm font-medium text-gray-600">
+                          {item.mode}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </Pressable>
+            )}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#6566fc"]}
+                tintColor="#6566fc"
+              />
+            }
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.3}
+            ListFooterComponent={
+              isFetching && page > 1 ? (
+                <ActivityIndicator size="small" color="#6566fc" />
+              ) : null
+            }
+            ListEmptyComponent={
+              !isLoading ? (
+                <View className="w-full items-center p-5">
+                  <Text className="text-xl font-bold mb-2">
+                    No upcoming sessions found.
+                  </Text>
+                  <Text className="text-base text-slate-500">
+                    Pull down to refresh and check for new sessions.
+                  </Text>
+                </View>
+              ) : null
+            }
+          />
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+};
+
+export default Index;
