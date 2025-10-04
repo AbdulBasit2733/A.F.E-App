@@ -1,10 +1,6 @@
 import { API_RESPONSE_PROPS } from "@/types/common-types";
-import {
-  removeTokenFromSecureStore,
-  saveTokenToSecureStore,
-} from "@/utils/token";
 import apiSlice from "../apiSlice";
-import { LOGIN_API_RESPONSE, LOGIN_PROPS, REGISTER_PROPS } from "./types";
+import { REGISTER_PROPS } from "./types";
 
 export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -26,7 +22,7 @@ export const authApi = apiSlice.injectEndpoints({
       }),
     }),
   }),
-  overrideExisting: false,
+  overrideExisting: true,
 });
 
 // Export hooks for convenience
