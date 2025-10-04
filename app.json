@@ -42,7 +42,19 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-video",
+      [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "DEFAULT"
+        }
+      ],
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        }
+      ],
       "expo-font",
       "expo-secure-store",
       [

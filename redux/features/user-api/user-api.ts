@@ -1,14 +1,14 @@
 import { API_RESPONSE_PROPS } from "@/types/common-types";
 import apiSlice from "../apiSlice";
-import type { CONTACT, USER_API_RESPONSE, USER_PROPS } from "./types";
+import type { CONTACT, GET_USER_DETAILS_API_RESPONSE, USER_PROPS } from "./types";
 
 export const userApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getUserDetails: builder.query<USER_API_RESPONSE, void>({
+    getUserDetailsFn: builder.query<GET_USER_DETAILS_API_RESPONSE, void>({
       query: () => "/users/user-details",
       providesTags: ["User"],
     }),
-    updateUserDetails: builder.mutation<API_RESPONSE_PROPS, {formData:USER_PROPS}>({
+    updateUserDetailsFn: builder.mutation<API_RESPONSE_PROPS, {formData:USER_PROPS}>({
       query: ({formData}) => ({
         url: "/users/create-user-details",
         method: "POST",
@@ -23,7 +23,7 @@ export const userApi = apiSlice.injectEndpoints({
         body: contacts
       }),
     }),
-    forgotPassword: builder.mutation<API_RESPONSE_PROPS, {email:string}>({
+    forgotPasswordFn: builder.mutation<API_RESPONSE_PROPS, {email:string}>({
       query: ({email}) => ({
         url: "/users/forgot-password",
         method: "POST",
@@ -34,8 +34,8 @@ export const userApi = apiSlice.injectEndpoints({
 });
 
 export const {
-  useGetUserDetailsQuery,
-  useUpdateUserDetailsMutation,
+  useGetUserDetailsFnQuery,
+  useUpdateUserDetailsFnMutation,
   useSaveUserContactsMutation,
-  useForgotPasswordMutation,
+  useForgotPasswordFnMutation,
 } = userApi;

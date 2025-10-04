@@ -3,17 +3,12 @@ import { BACKEND_URL } from "@/utils/utils";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
 import { CHECK_AUTH_REPONSE, LOGIN_API_RESPONSE, LOGIN_PROPS } from "./authTypes";
+import { USER_PROPS } from "../features/user-api/types";
 
-// User type
-interface UserProps {
-  email: string | null;
-  firstname: string | null;
-  lastname: string | null;
-}
 
 // Auth slice state type
 interface AuthState {
-  user: UserProps | null;
+  user: USER_PROPS | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   error?: string;
@@ -107,6 +102,9 @@ const authSlice = createSlice({
       state.user = null;
       state.error = undefined;
     },
+    setUser: (state, action: PayloadAction<USER_PROPS>) => {
+      state.user = action.payload;
+    },
   },
   extraReducers: (builder) => {
     // Login
@@ -150,5 +148,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logoutUser } = authSlice.actions;
+export const { logoutUser,setUser } = authSlice.actions;
 export default authSlice.reducer;

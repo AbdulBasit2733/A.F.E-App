@@ -14,6 +14,7 @@ export interface Investment {
 
 export interface USER_PROPS {
   _id?: string;
+  profilePic?:string;
   firstname: string;
   lastname: string;
   dob: string;
@@ -32,7 +33,7 @@ export interface USER_PROPS {
   address: string;
 }
 
-export interface USER_API_RESPONSE extends API_RESPONSE_PROPS {
+export interface GET_USER_DETAILS_API_RESPONSE extends API_RESPONSE_PROPS {
   data: USER_PROPS;
 }
 

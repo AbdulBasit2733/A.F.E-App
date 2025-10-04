@@ -1,6 +1,6 @@
-import { useAppDispatch, useAppSelector } from "@/hooks/use-redux";
-import { logoutUser } from "@/redux/auth-slice/index";
-import { getUserDetails } from "@/redux/user-slice";
+import { useAppDispatch } from "@/hooks/use-redux";
+import { logoutUser, setUser } from "@/redux/auth-slice/index";
+import { useGetUserDetailsFnQuery } from "@/redux/features/user-api/user-api";
 import { removeTokenFromSecureStore } from "@/utils/token";
 import { formatAmount } from "@/utils/utils";
 import {
@@ -10,36 +10,45 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
+import * as Haptics from "expo-haptics";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Profile = () => {
-  const { isLoading, user } = useAppSelector((state) => state.user);
-  const [Loading, setIsLoading] = useState(false);
+  const {
+    data: userDetailsResponse,
+    isLoading,
+    refetch,
+  } = useGetUserDetailsFnQuery();
+
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
-  // console.log(user);
+
+  const user = userDetailsResponse?.data;
+
+  useEffect(() => {
+    if (user) {
+      dispatch(setUser(user));
+    }
+  }, [userDetailsResponse]);
 
   const onRefresh = async () => {
+    setRefreshing(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
-      setRefreshing(true);
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      await dispatch(getUserDetails({ signal }));
-
-      controller.abort(); // Cleanup (optional for refresh)
+      await refetch();
     } catch (error) {
       console.log("Refresh Error:", error);
     } finally {
@@ -48,261 +57,406 @@ const Profile = () => {
   };
 
   const handleLogout = async () => {
-    setIsLoading(true);
-    try {
-      await removeTokenFromSecureStore();
-
-      dispatch(logoutUser());
-
-      setIsLoading(false);
-      setTimeout(() => {
-        Alert.alert("Logout Successfully");
-        router.replace("/login");
-      }, 1000);
-    } catch (error) {
-      console.error("Error during logout:", error?.message, error?.stack);
-      Alert.alert(
-        "Error",
-        "An error occurred while logging out. Please try again."
-      );
-      setIsLoading(false);
-    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+        onPress: () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light),
+      },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: async () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          try {
+            await removeTokenFromSecureStore();
+            dispatch(logoutUser());
+            router.replace("/login");
+          } catch (error: any) {
+            console.error("Error during logout:", error?.message, error?.stack);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            Alert.alert(
+              "Error",
+              "An error occurred while logging out. Please try again."
+            );
+          }
+        },
+      },
+    ]);
   };
-  if (isLoading || Loading)
+
+  const handleEditProfile = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push("/(screens)");
+  };
+
+  const handleEditPhoto = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push("/(screens)");
+  };
+
+  if (isLoading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#6566fc" />
       </View>
     );
+  }
+
+  const getInitials = () => {
+    const firstName = user?.firstname || "";
+    const lastName = user?.lastname || "";
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
   return (
-    <ScrollView
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      className="flex-1 bg-white"
-    >
-      <SafeAreaView>
-        <View className="mx-3 my-5">
-          <View className="flex-1">
-            <View className="flex flex-row justify-between items-center w-full">
-              <Text className="text-2xl font-bold tracking-wide capitalize">
-                {user?.userId?.firstname || "Not Available"}{" "}
-                {user?.userId?.lastname || "Not Available"}
-              </Text>
-              <Pressable onPress={handleLogout}>
-                <MaterialIcons name="logout" size={25} />
+    <View className="flex-1 bg-gray-50">
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#6566fc"
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header with Gradient Background */}
+        <View className="bg-[#6566fc] h-48 relative mb-5">
+          <SafeAreaView>
+            <View className="flex-row justify-between items-center px-5 pt-2">
+              <Text className="text-white text-xl font-bold">Profile</Text>
+              <Pressable
+                onPress={handleLogout}
+                style={({ pressed }) => ({
+                  transform: [{ scale: pressed ? 0.9 : 1 }],
+                  opacity: pressed ? 0.8 : 1,
+                })}
+                className="bg-white/20 p-2.5 rounded-full"
+              >
+                <MaterialIcons name="logout" size={22} color="white" />
               </Pressable>
             </View>
-            <View className="mt-10 mb-5 flex-1">
-              <View className="flex flex-row justify-between items-center">
-                <Text className="text-[16px] tracking-wide font-semibold">
-                  Personal Information
-                </Text>
+          </SafeAreaView>
+        </View>
+
+        {/* Profile Card */}
+        <View className="mx-5 -mt-20">
+          <View className="bg-white rounded-3xl shadow-lg p-6">
+            {/* Profile Picture */}
+            <View className="items-center -mt-16 mb-4">
+              <View className="relative">
+                {user?.profilePic ? (
+                  <Image
+                    source={{ uri: user.profilePic }}
+                    className="w-32 h-32 rounded-full border-4 border-white"
+                    style={styles.profileImage}
+                  />
+                ) : (
+                  <View className="w-32 h-32 rounded-full bg-[#6566fc] border-4 border-white items-center justify-center">
+                    <Text className="text-white text-4xl font-bold">
+                      {getInitials()}
+                    </Text>
+                  </View>
+                )}
                 <Pressable
-                  onPress={() => router.push("/(screens)")}
-                  className="flex-row gap-0.5 items-center bg-primary shadow-md px-4 py-2 rounded-md"
+                  onPress={handleEditPhoto}
+                  style={({ pressed }) => ({
+                    transform: [{ scale: pressed ? 0.9 : 1 }],
+                    opacity: pressed ? 0.8 : 1,
+                  })}
+                  className="absolute bottom-0 right-0 bg-[#6566fc] p-3 rounded-full shadow-md"
                 >
-                  <MaterialIcons name="mode-edit-outline" color={"white"} />
-                  <Text className="text-[14px] font-semibold text-white">
-                    Edit
-                  </Text>
+                  <MaterialIcons name="camera-alt" size={20} color="white" />
                 </Pressable>
               </View>
-              <View className="mt-5 w-full flex-1 gap-2 py-5 px-2">
-                <View className="px-3 py-4 flex-row justify-between items-center border-b border-dashed border-slate-400">
-                  <View className="flex-row items-center gap-2">
-                    <MaterialCommunityIcons
-                      size={25}
-                      name="email"
-                      color={"#6566fc"}
-                    />
-                    <Text className="text-[16px] font-semibold">Email</Text>
-                  </View>
-                  <View>
-                    <Text className="text-[14px] font-semibold">
-                      {user?.userId?.email || "Not Available"}
-                    </Text>
-                  </View>
-                </View>
+            </View>
 
-                <View className="px-3 py-4 flex-row justify-between items-center border-b border-dashed border-slate-400">
-                  <View className="flex-row items-center gap-2">
-                    <FontAwesome
-                      size={25}
-                      name="birthday-cake"
-                      color={"#6566fc"}
-                    />
-                    <Text className=" text-[16px] font-semibold">DOB</Text>
-                  </View>
-                  <View>
-                    <Text className="text-[14px] font-semibold">
-                      {user?.userId?.dob
-                        ? user.userId.dob.split("T")[0]
-                        : "Not Provided"}
-                    </Text>
-                  </View>
-                </View>
+            {/* Name & Edit Button */}
+            <View className="items-center mb-6">
+              <Text className="text-2xl font-bold text-gray-800 capitalize">
+                {user?.firstname || "Not"} {user?.lastname || "Available"}
+              </Text>
+              <Pressable
+                onPress={handleEditProfile}
+                style={({ pressed }) => ({
+                  transform: [{ scale: pressed ? 0.95 : 1 }],
+                  opacity: pressed ? 0.8 : 1,
+                })}
+                className="flex-row items-center gap-1 mt-3 bg-[#6566fc]/10 px-4 py-2 rounded-full"
+              >
+                <MaterialIcons
+                  name="mode-edit-outline"
+                  size={16}
+                  color="#6566fc"
+                />
+                <Text className="text-[#6566fc] font-semibold text-sm">
+                  Edit Profile
+                </Text>
+              </Pressable>
+            </View>
 
-                <View className="px-3 py-4 flex-row justify-between items-center border-b border-dashed border-slate-400">
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="male-female" size={25} color={"#6566fc"} />
-                    <Text className=" text-[16px] font-semibold">Gender</Text>
-                  </View>
-                  <View>
-                    <Text className="text-[14px] font-semibold">
-                      {user?.userId?.gender || "Not Available"}
-                    </Text>
-                  </View>
-                </View>
+            {/* Stats Cards */}
+            <View className="flex-row justify-between mb-6 gap-3">
+              <Pressable
+                onPress={() =>
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                }
+                style={({ pressed }) => ({
+                  transform: [{ scale: pressed ? 0.97 : 1 }],
+                  opacity: pressed ? 0.8 : 1,
+                })}
+                className="flex-1 bg-[#6566fc]/5 p-4 rounded-2xl items-center"
+              >
+                <MaterialIcons name="attach-money" size={24} color="#6566fc" />
+                <Text className="text-gray-500 text-xs mt-1">Income</Text>
+                <Text className="text-gray-800 font-bold text-base mt-1">
+                  {formatAmount(user?.income || 0)}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() =>
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                }
+                style={({ pressed }) => ({
+                  transform: [{ scale: pressed ? 0.97 : 1 }],
+                  opacity: pressed ? 0.8 : 1,
+                })}
+                className="flex-1 bg-[#6566fc]/5 p-4 rounded-2xl items-center"
+              >
+                <MaterialIcons
+                  name="account-balance-wallet"
+                  size={24}
+                  color="#6566fc"
+                />
+                <Text className="text-gray-500 text-xs mt-1">Net Worth</Text>
+                <Text className="text-gray-800 font-bold text-base mt-1">
+                  {formatAmount(user?.netWorth || 0)}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
 
-                <View className="px-3 py-4 flex-row justify-between items-center flex-wrap border-b border-dashed border-slate-400">
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons
-                      name="location-sharp"
-                      size={25}
-                      color={"#6566fc"}
-                    />
-                    <Text className=" text-[16px] font-semibold">Address</Text>
-                  </View>
-                  <View>
-                    <Text className="text-[14px] font-semibold text-wrap max-w-40">
-                      {user?.address || "Not Available"}
-                    </Text>
-                  </View>
-                </View>
+          {/* Personal Information Section */}
+          <View className="bg-white rounded-3xl shadow-lg p-6 mt-5">
+            <Text className="text-lg font-bold text-gray-800 mb-4">
+              Personal Information
+            </Text>
 
-                <View className="px-3 py-4 flex-row justify-between items-center border-b border-dashed border-slate-400">
-                  <View className="flex-row items-center gap-2">
-                    <MaterialIcons
-                      name="attach-money"
-                      size={25}
-                      color={"#6566fc"}
-                    />
-                    <Text className=" text-[16px] font-semibold">Income</Text>
-                  </View>
-                  <View>
-                    <Text className="text-[14px] font-semibold">
-                      {formatAmount(user?.income || 0)}
-                    </Text>
-                  </View>
-                </View>
-                <View className="px-3 py-4 flex-row justify-between items-center border-b border-dashed border-slate-400">
-                  <View className="flex-row items-center gap-2">
-                    <MaterialIcons
-                      name="attach-money"
-                      size={25}
-                      color={"#6566fc"}
-                    />
-                    <Text className=" text-[16px] font-semibold">
-                      Net Worth
-                    </Text>
-                  </View>
-                  <View>
-                    <Text className="text-[14px] font-semibold">
-                      {formatAmount(user?.netWorth || 0)}
-                    </Text>
-                  </View>
-                </View>
+            <InfoRow
+              icon={
+                <MaterialCommunityIcons
+                  size={22}
+                  name="email"
+                  color="#6566fc"
+                />
+              }
+              label="Email"
+              value={user?.email || "Not Available"}
+            />
+            <InfoRow
+              icon={
+                <FontAwesome size={22} name="birthday-cake" color="#6566fc" />
+              }
+              label="Date of Birth"
+              value={user?.dob ? user.dob.split("T")[0] : "Not Provided"}
+            />
+            <InfoRow
+              icon={<Ionicons name="male-female" size={22} color="#6566fc" />}
+              label="Gender"
+              value={user?.gender || "Not Available"}
+            />
+            <InfoRow
+              icon={
+                <Ionicons name="location-sharp" size={22} color="#6566fc" />
+              }
+              label="Address"
+              value={user?.address || "Not Available"}
+              isLast
+            />
+          </View>
 
-                <View className="px-3 py-4 flex-row justify-between items-center border-b border-dashed border-slate-400">
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="document" size={25} color={"#6566fc"} />
-                    <Text className=" text-[16px] font-semibold">
-                      Aadhar Number
-                    </Text>
-                  </View>
-                  <View>
-                    <Text className="text-[14px] font-semibold">
-                      {user?.aadharCard || "Not Available"}
-                    </Text>
-                  </View>
-                </View>
+          {/* Documents Section */}
+          <View className="bg-white rounded-3xl shadow-lg p-6 mt-5">
+            <Text className="text-lg font-bold text-gray-800 mb-4">
+              Documents
+            </Text>
 
-                <View className="px-3 py-4 flex-row justify-between items-center border-b border-dashed border-slate-400">
-                  <View className="flex-row items-center gap-2">
-                    <Ionicons name="document" size={25} color={"#6566fc"} />
-                    <Text className=" text-[16px] font-semibold">Pancard</Text>
-                  </View>
-                  <View>
-                    <Text className="text-[14px] font-semibold">
-                      {user?.panCard || "Not Available"}
-                    </Text>
-                  </View>
-                </View>
-                <View className=" flex flex-col items-center mt-5">
-                  {/* <Ionicons name="document" size={24} color={"#ff9f1c"} /> */}
-                  <Text className=" text-[16px] font-semibold">Insurances</Text>
-                </View>
+            <InfoRow
+              icon={<Ionicons name="document-text" size={22} color="#6566fc" />}
+              label="Aadhar Number"
+              value={user?.aadharCard || "Not Available"}
+            />
+            <InfoRow
+              icon={<Ionicons name="card" size={22} color="#6566fc" />}
+              label="PAN Card"
+              value={user?.panCard || "Not Available"}
+              isLast
+            />
+          </View>
 
-                <View className="px-3 py-4 border-b flex-col gap-5 border-dashed border-slate-400">
-                  {user?.insurances.length === 0 ? (
-                    <View className="flex flex-row justify-between">
-                      <Text className="text-[12px] text-slate-500 font-medium">
-                        Not Available
-                      </Text>
-                    </View>
-                  ) : (
-                    user?.insurances.map((ins, index) => (
-                      <View
-                        key={index}
-                        className="flex flex-row justify-between"
-                      >
-                        <Text className="text-[16px] font-semibold">
-                          {index + 1}. {ins.type}
+          {/* Insurances Section */}
+          <View className="bg-white rounded-3xl shadow-lg p-6 mt-5">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-lg font-bold text-gray-800">
+                Insurances
+              </Text>
+              <View className="bg-[#6566fc]/10 px-3 py-1 rounded-full">
+                <Text className="text-[#6566fc] font-semibold text-xs">
+                  {user?.insurances?.length || 0}
+                </Text>
+              </View>
+            </View>
+
+            {user?.insurances?.length === 0 ? (
+              <View className="py-8 items-center">
+                <MaterialCommunityIcons
+                  name="shield-off"
+                  size={48}
+                  color="#d1d5db"
+                />
+                <Text className="text-gray-400 mt-2">No insurances added</Text>
+              </View>
+            ) : (
+              <View className="gap-3">
+                {user?.insurances?.map((ins, index) => (
+                  <Pressable
+                    key={index}
+                    onPress={() =>
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                    }
+                    style={({ pressed }) => ({
+                      transform: [{ scale: pressed ? 0.98 : 1 }],
+                      opacity: pressed ? 0.8 : 1,
+                    })}
+                    className="bg-[#6566fc]/5 p-4 rounded-xl flex-row justify-between items-center"
+                  >
+                    <View className="flex-row items-center gap-3 flex-1">
+                      <View className="bg-[#6566fc] w-10 h-10 rounded-full items-center justify-center">
+                        <Text className="text-white font-bold">
+                          {index + 1}
                         </Text>
-                        <Text className="text-[16px] font-semibold">
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-gray-800 font-semibold text-base">
+                          {ins.type}
+                        </Text>
+                        <Text className="text-gray-500 text-sm mt-0.5">
                           {ins.companyName}
                         </Text>
                       </View>
-                    ))
-                  )}
-                </View>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color="#9ca3af"
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
 
-                <View className="flex items-center mt-5">
-                  <Text className=" text-[16px] font-semibold">
-                    Investments
-                  </Text>
-                </View>
-
-                <View className="px-3 py-4  border-b border-dashed border-slate-400">
-                  <View className="flex-col gap-5">
-                    {user?.investments.length === 0 ? (
-                      <View className="flex flex-row justify-between">
-                        <Text className="text-[12px] text-slate-500 font-medium">
-                          Not Available
-                        </Text>
-                      </View>
-                    ) : (
-                      user?.investments.map((inv, index) => (
-                        <View
-                          key={index}
-                          className="flex flex-row justify-between"
-                        >
-                          <Text className="text-[16px] font-semibold">
-                            {index + 1}. {inv.investmentType}
-                          </Text>
-                          <Text className="text-[16px] font-semibold">
-                            {formatAmount(inv.amount || 0)}
-                          </Text>
-                        </View>
-                      ))
-                    )}
-                  </View>
-                </View>
+          {/* Investments Section */}
+          <View className="bg-white rounded-3xl shadow-lg p-6 mt-5 mb-8">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-lg font-bold text-gray-800">
+                Investments
+              </Text>
+              <View className="bg-[#6566fc]/10 px-3 py-1 rounded-full">
+                <Text className="text-[#6566fc] font-semibold text-xs">
+                  {user?.investments?.length || 0}
+                </Text>
               </View>
             </View>
+
+            {user?.investments?.length === 0 ? (
+              <View className="py-8 items-center">
+                <MaterialIcons name="trending-up" size={48} color="#d1d5db" />
+                <Text className="text-gray-400 mt-2">No investments added</Text>
+              </View>
+            ) : (
+              <View className="gap-3">
+                {user?.investments?.map((inv, index) => (
+                  <Pressable
+                    key={index}
+                    onPress={() =>
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                    }
+                    style={({ pressed }) => ({
+                      transform: [{ scale: pressed ? 0.98 : 1 }],
+                      opacity: pressed ? 0.8 : 1,
+                    })}
+                    className="bg-[#6566fc]/5 p-4 rounded-xl flex-row justify-between items-center"
+                  >
+                    <View className="flex-row items-center gap-3 flex-1">
+                      <View className="bg-[#6566fc] w-10 h-10 rounded-full items-center justify-center">
+                        <Text className="text-white font-bold">
+                          {index + 1}
+                        </Text>
+                      </View>
+                      <Text className="text-gray-800 font-semibold text-base flex-1">
+                        {inv.investmentType}
+                      </Text>
+                    </View>
+                    <Text className="text-[#6566fc] font-bold text-base">
+                      {formatAmount(inv.amount || 0)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </View>
         </View>
-      </SafeAreaView>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
+// Reusable Info Row Component
+const InfoRow = ({
+  icon,
+  label,
+  value,
+  isLast = false,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  isLast?: boolean;
+}) => (
+  <Pressable
+    onPress={() => Haptics.selectionAsync()}
+    style={({ pressed }) => ({
+      opacity: pressed ? 0.7 : 1,
+    })}
+    className={`flex-row items-center justify-between py-4 ${
+      !isLast ? "border-b border-gray-100" : ""
+    }`}
+  >
+    <View className="flex-row items-center gap-3 flex-1">
+      <View className="w-10 h-10 bg-[#6566fc]/10 rounded-full items-center justify-center">
+        {icon}
+      </View>
+      <Text className="text-gray-600 font-medium flex-1">{label}</Text>
+    </View>
+    <Text className="text-gray-800 font-semibold max-w-[180px] text-right">
+      {value}
+    </Text>
+  </Pressable>
+);
+
 export default Profile;
+
 const styles = StyleSheet.create({
   loaderContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#f9fafb",
+  },
+  profileImage: {
+    resizeMode: "cover",
   },
 });

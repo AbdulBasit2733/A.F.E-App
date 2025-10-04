@@ -7,17 +7,28 @@ const ScreensLayout = () => {
     <GestureHandlerRootView className="flex-1">
       <Stack
         screenOptions={{
-          headerShown: true,
-          headerBackVisible: true,
+          headerShown: false,
+          animation: "slide_from_right",
+          contentStyle: {
+            backgroundColor: "#f9fafb",
+          },
         }}
       >
         <Stack.Screen
           name="index"
-          options={{ title: "Profile Edit", headerBackVisible: true }}
+          options={{
+            title: "Edit Profile",
+            headerShown: false,
+            presentation: "card",
+          }}
         />
         <Stack.Screen
           name="form"
-          options={{ title: "Register Session", headerBackVisible: true }}
+          options={{
+            title: "Register Session",
+            headerShown: false,
+            presentation: "card",
+          }}
         />
       </Stack>
     </GestureHandlerRootView>
