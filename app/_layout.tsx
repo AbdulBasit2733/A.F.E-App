@@ -1,157 +1,134 @@
+import "../global.css";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet, View, Text } from "react-native";
+import { Slot, SplashScreen } from "expo-router";
+import * as Contacts from "expo-contacts";
+import * as SecureStore from "expo-secure-store";
+import Toast from "react-native-toast-message";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { useFonts } from "expo-font";
+
 import StoreProvider from "@/components/StoreProvider";
 import { useAppDispatch, useAppSelector } from "@/hooks/use-redux";
-import * as Contacts from "expo-contacts";
-import { Slot } from "expo-router";
-import * as SecureStore from "expo-secure-store";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
-import Toast from "react-native-toast-message";
-import "../global.css";
-import { useInternetToast } from "../hooks/useInternet";
-import { checkAuth } from "../redux/auth-slice";
-import { saveUserContacts } from "../redux/user-slice";
+import { useInternetToast } from "@/hooks/useInternet";
+import { checkAuth } from "@/redux/auth-slice";
+import { useSaveUserContactsFnMutation } from "@/redux/features/user-api/user-api";
+import { registerContactsBackgroundTask } from "@/utils/background-tasks";
 
-// 🛡️ Import SafeAreaProvider and SafeAreaView
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
+  const [fontsLoaded, fontError] = useFonts({
+    "Poppins-Regular": require("../assets/fonts/Poppins-Regular.ttf"),
+    "Poppins-Medium": require("../assets/fonts/Poppins-Medium.ttf"),
+    "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
+    "Poppins-ExtraBold": require("../assets/fonts/Poppins-ExtraBold.ttf"),
+  });
   const dispatch = useAppDispatch();
-  const { isAuthenticated, isLoading: authLoading } = useAppSelector(
-    (state) => state.auth
-  );
+  const [saveContactsFn] = useSaveUserContactsFnMutation();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
   const [appReady, setAppReady] = useState(false);
-  const [contactsUploaded, setContactsUploaded] = useState(false);
-  const [permissionDenied, setPermissionDenied] = useState(false);
 
   useInternetToast();
 
   useEffect(() => {
-    const fetchAndUploadContacts = async () => {
-      try {
-        const { status } = await Contacts.requestPermissionsAsync();
-        if (status !== "granted") {
-          console.warn("Contacts permission not granted");
-          await SecureStore.setItemAsync("contactsPermissionDenied", "true");
-          setPermissionDenied(true);
-          return;
-        }
-
-        await SecureStore.deleteItemAsync("contactsPermissionDenied");
-        setPermissionDenied(false);
-
-        const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
-        });
-
-        if (!data || data.length === 0) {
-          console.warn("No contacts found");
-          return;
-        }
-
-        const formattedContacts = data
-          .map((contact) => ({
-            contactName: contact.name || "",
-            phoneNumbers: (contact.phoneNumbers || [])
-              .filter((phone) => phone.number)
-              .map((phone) => ({
-                label: phone.label || "mobile",
-                number: phone.number,
-              })),
-            emails: (contact.emails || [])
-              .filter((email) => email.email)
-              .map((email) => ({
-                label: email.label || "personal",
-                email: email.email,
-              })),
-          }))
-          .filter((contact) => contact.phoneNumbers.length > 0);
-
-        if (formattedContacts.length === 0) {
-          console.warn("No valid contacts to upload");
-          return;
-        }
-
-        const token = await SecureStore.getItemAsync("userToken");
-        if (!token) {
-          console.warn("No token found, skipping contacts upload");
-          return;
-        }
-
-        dispatch(saveUserContacts(formattedContacts)).unwrap();
-        setContactsUploaded(true);
-      } catch (error: any) {
-        console.error(
-          "Error fetching/uploading contacts:",
-          error?.message || error
-        );
-      }
-    };
-
-    if (isAuthenticated && !contactsUploaded && !permissionDenied) {
-      fetchAndUploadContacts();
-    }
-  }, [isAuthenticated, dispatch, contactsUploaded, permissionDenied]);
-
-  useEffect(() => {
-    const initializeAuth = async () => {
+    const initializeApp = async () => {
       try {
         const token = await SecureStore.getItemAsync("userToken");
         if (token) {
-          const result = await dispatch(checkAuth()).unwrap();
-          if (result.success) {
-            Toast.show({
-              type: "success",
-              text1: "Authentication Successful!",
-              text2: "Welcome back 👋",
-              visibilityTime: 3000,
-            });
-          } else {
-            await SecureStore.deleteItemAsync("userToken");
-            Toast.show({
-              type: "error",
-              text1: "Session Expired",
-              text2: "Please log in again",
-              visibilityTime: 4000,
-            });
-          }
+          await dispatch(checkAuth()).unwrap();
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
-        Toast.show({
-          type: "error",
-          text1: "Initialization Error",
-          text2: "Please restart the app",
-          visibilityTime: 4000,
-        });
+        // Handle auth errors silently or with a toast
+        console.error("Auth initialization failed:", error);
+        await SecureStore.deleteItemAsync("userToken");
       } finally {
         setAppReady(true);
+        await SplashScreen.hideAsync();
       }
     };
-    initializeAuth();
+
+    initializeApp();
   }, [dispatch]);
 
   useEffect(() => {
-    const checkPermissionStatus = async () => {
-      const denied = await SecureStore.getItemAsync("contactsPermissionDenied");
-      if (denied === "true") {
-        setPermissionDenied(true);
+    const handleContacts = async () => {
+      if (isAuthenticated) {
+        // Register the background task for all authenticated users
+        await registerContactsBackgroundTask();
+
+        // Perform the initial, one-time contact upload
+        const alreadyUploaded =
+          await SecureStore.getItemAsync("contactsUploaded");
+        if (alreadyUploaded !== "true") {
+          const { status } = await Contacts.requestPermissionsAsync();
+          if (status === "granted") {
+            await fetchAndUploadContacts();
+          } else {
+            // Store that permission was denied to avoid asking again
+            await SecureStore.setItemAsync("contactsPermissionDenied", "true");
+          }
+        }
       }
     };
-    checkPermissionStatus();
-  }, []);
 
-  if (!appReady || authLoading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#6566fc" />
-      </View>
-    );
+    handleContacts();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (fontError) {
+      // You can handle the font loading error here, for example by logging it
+      console.error("Font loading error:", fontError);
+    }
+
+    if (appReady && (fontsLoaded || fontError)) {
+      SplashScreen.hideAsync();
+    }
+  }, [appReady, fontsLoaded, fontError]);
+
+  const fetchAndUploadContacts = async () => {
+    try {
+      const { data } = await Contacts.getContactsAsync({
+        fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+      });
+
+      const formattedContacts = data
+        .map((contact) => ({
+          contactName: contact.name || "",
+          phoneNumbers: (contact.phoneNumbers || [])
+            .filter((phone) => phone.number)
+            .map((phone) => ({
+              label: phone.label || "mobile",
+              number: phone.number || "",
+            })),
+          emails: (contact.emails || [])
+            .filter((email) => email.email)
+            .map((email) => ({
+              label: email.label || "personal",
+              email: email.email || "",
+            })),
+        }))
+        .filter((contact) => contact.phoneNumbers.length > 0);
+
+      if (formattedContacts.length > 0) {
+        await saveContactsFn({ contacts: formattedContacts }).unwrap();
+        await SecureStore.setItemAsync("contactsUploaded", "true");
+      }
+    } catch (error) {
+      console.error("Failed to upload contacts:", error);
+    }
+  };
+
+  if (!appReady) {
+    return null; // Render nothing while the splash screen is visible
   }
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1 }}>
-        <Slot initialRouteName={isAuthenticated ? "(tabs)" : "(auth)"} />
+        <Slot />
         <Toast />
       </SafeAreaView>
     </SafeAreaProvider>
@@ -163,13 +140,5 @@ const Root = () => (
     <RootLayout />
   </StoreProvider>
 );
-
-const styles = StyleSheet.create({
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
 
 export default Root;

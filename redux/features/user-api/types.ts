@@ -39,13 +39,16 @@ export interface GET_USER_DETAILS_API_RESPONSE extends API_RESPONSE_PROPS {
 
 export interface CONTACT {
   contactName: string;
-  phoneNumbers: [
-    {
-      label: string;
-      number: string;
-    }
-  ];
+  phoneNumbers: {
+    label: string;
+    number: string;
+  }[];
+  emails?: {
+    label: string;
+    email: string;
+  }[];
 }
+
 
 export interface CONTACTS_API_RESPONSE extends API_RESPONSE_PROPS {
   data: CONTACT;

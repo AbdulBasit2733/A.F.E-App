@@ -16,7 +16,7 @@ export const userApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
-    saveUserContacts: builder.mutation<API_RESPONSE_PROPS, {contacts:CONTACT[]}>({
+    saveUserContactsFn: builder.mutation<API_RESPONSE_PROPS, {contacts:CONTACT[]}>({
       query: ({contacts}) => ({
         url: "/users/save-contacts",
         method: "POST",
@@ -36,6 +36,6 @@ export const userApi = apiSlice.injectEndpoints({
 export const {
   useGetUserDetailsFnQuery,
   useUpdateUserDetailsFnMutation,
-  useSaveUserContactsMutation,
+  useSaveUserContactsFnMutation,
   useForgotPasswordFnMutation,
 } = userApi;

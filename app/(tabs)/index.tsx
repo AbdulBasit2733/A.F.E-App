@@ -33,13 +33,6 @@ const Index = () => {
   const limit = 10;
 
   // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [search]);
 
   const {
     data: sessionsResponse,
@@ -53,9 +46,19 @@ const Index = () => {
       limit,
       sessionType: selectedSessionType || undefined,
       mode: selectedMode || undefined,
+      search: debouncedSearch || undefined,
     },
     { refetchOnMountOrArgChange: true }
   );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search); // Only triggers search API
+      setPage(1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -289,7 +292,12 @@ const Index = () => {
           placeholder="Search sessions..."
           placeholderTextColor="#9ca3af"
           className="flex-1 ml-3 text-gray-800 text-base"
+          autoCorrect={false}
+          autoCapitalize="none"
+          keyboardType="default"
+          submitBehavior={"blurAndSubmit"}
         />
+
         {search.length > 0 && (
           <Pressable
             onPress={clearSearch}
@@ -304,7 +312,8 @@ const Index = () => {
       {/* Filters & Count */}
       <View className="flex-row items-center justify-between mb-4">
         <Text className="text-gray-600 text-sm font-medium">
-          {filteredSessions.length} session{filteredSessions.length !== 1 ? "s" : ""}
+          {filteredSessions.length} session
+          {filteredSessions.length !== 1 ? "s" : ""}
         </Text>
 
         <View className="flex-row items-center gap-2">
@@ -319,9 +328,7 @@ const Index = () => {
               className="bg-red-50 px-3 py-2 rounded-xl flex-row items-center gap-1"
             >
               <Ionicons name="close-circle" size={16} color="#ef4444" />
-              <Text className="text-red-500 font-semibold text-xs">
-                Clear
-              </Text>
+              <Text className="text-red-500 font-semibold text-xs">Clear</Text>
             </Pressable>
           )}
 
@@ -347,9 +354,7 @@ const Index = () => {
               size={16}
               color="#6566fc"
             />
-            <Text className="text-gray-700 font-semibold text-sm">
-              Filters
-            </Text>
+            <Text className="text-gray-700 font-semibold text-sm">Filters</Text>
             {activeFiltersCount > 0 && (
               <View className="bg-primary rounded-full w-5 h-5 items-center justify-center">
                 <Text className="text-white text-xs font-bold">
@@ -366,7 +371,10 @@ const Index = () => {
         <View className="bg-primary/10 rounded-xl p-3 mb-4 flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
             <Feather name="search" size={14} color="#6566fc" />
-            <Text className="text-primary font-medium text-sm" numberOfLines={1}>
+            <Text
+              className="text-primary font-medium text-sm"
+              numberOfLines={1}
+            >
               Searching: "{search}"
             </Text>
           </View>
@@ -419,7 +427,11 @@ const Index = () => {
       <View className="flex-1 items-center justify-center py-20 px-6">
         <View className="w-32 h-32 bg-primary/10 rounded-full items-center justify-center mb-6">
           <MaterialCommunityIcons
-            name={search || activeFiltersCount > 0 ? "magnify-close" : "calendar-remove"}
+            name={
+              search || activeFiltersCount > 0
+                ? "magnify-close"
+                : "calendar-remove"
+            }
             size={64}
             color="#6566fc"
           />
@@ -489,6 +501,7 @@ const Index = () => {
 
           {/* Sessions List */}
           <FlatList
+            extraData={debouncedSearch}
             data={filteredSessions}
             keyExtractor={(item) => item._id}
             renderItem={renderSessionCard}
@@ -536,10 +549,14 @@ const Index = () => {
                       </Text>
                       <Pressable
                         onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Light
+                          );
                           setShowFilterModal(false);
                         }}
-                        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                        style={({ pressed }) => ({
+                          opacity: pressed ? 0.6 : 1,
+                        })}
                         className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center"
                       >
                         <Ionicons name="close" size={24} color="#6b7280" />
@@ -558,7 +575,7 @@ const Index = () => {
                           selected={selectedSessionType === ""}
                           onPress={(val) => setSelectedSessionType(val)}
                         />
-                       
+
                         <FilterOption
                           label="DDFPL"
                           value="DDFPL"
@@ -603,7 +620,9 @@ const Index = () => {
 
                     {/* Apply Button */}
                     <Pressable
-                      onPress={() => applyFilters(selectedSessionType, selectedMode)}
+                      onPress={() =>
+                        applyFilters(selectedSessionType, selectedMode)
+                      }
                       style={({ pressed }) => ({
                         transform: [{ scale: pressed ? 0.98 : 1 }],
                         opacity: pressed ? 0.9 : 1,

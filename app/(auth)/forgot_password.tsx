@@ -1,23 +1,16 @@
+import { useForgotPasswordFnMutation } from "@/redux/features/user-api/user-api";
 import { Link, router } from "expo-router";
 import React, { useState } from "react";
-import {
-  Pressable,
-  Text,
-  TextInput,
-  ToastAndroid,
-  View,
-} from "react-native";
+import { Pressable, Text, TextInput, ToastAndroid, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, verticalScale } from "react-native-size-matters";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const [forgotPasswordFn] = useForgotPasswordMutation();
+  const [forgotPasswordFn, { isLoading }] = useForgotPasswordFnMutation();
 
   const handleUpdatePassword = async () => {
-    setIsLoading(true);
     if (email && email.includes("@")) {
       try {
         const data = await forgotPasswordFn({ email }).unwrap();
@@ -67,16 +60,23 @@ const ForgotPassword = () => {
         50
       );
     }
-    setIsLoading(false);
   };
 
   return (
-    <SafeAreaProvider style={{ padding: moderateScale(20), backgroundColor: "white" }}>
+    <SafeAreaProvider
+      style={{ padding: moderateScale(20), backgroundColor: "white" }}
+    >
       <SafeAreaView
         className="shadow-md rounded-md bg-slate-100 py-10 px-5 gap-5"
-        style={{ paddingHorizontal: moderateScale(20), marginTop: verticalScale(40) }}
+        style={{
+          paddingHorizontal: moderateScale(20),
+          marginTop: verticalScale(40),
+        }}
       >
-        <Text className="text-center text-primary font-extrabold tracking-wider" style={{ fontSize: moderateScale(30) }}>
+        <Text
+          className="text-center text-primary font-extrabold tracking-wider"
+          style={{ fontSize: moderateScale(30) }}
+        >
           Forgot Password
         </Text>
 
@@ -94,7 +94,9 @@ const ForgotPassword = () => {
 
         <SafeAreaView className="flex-row justify-center">
           <Link href={"/(auth)/login"}>
-            <Text className="text-primary text-lg underline font-semibold">Go To Login</Text>
+            <Text className="text-primary text-lg underline font-semibold">
+              Go To Login
+            </Text>
           </Link>
         </SafeAreaView>
 

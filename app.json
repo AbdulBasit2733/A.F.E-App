@@ -2,7 +2,7 @@
   "expo": {
     "name": "A.F.E",
     "slug": "afe",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "default",
     "icon": "./assets/images/logo2x.png",
     "scheme": "afe",
@@ -14,11 +14,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#ffffff"
       },
-      "permissions": ["INTERNET"],
+      "permissions": ["INTERNET", "READ_CONTACTS"],
       "package": "com.dev.abdulbasit.afe",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -55,7 +53,18 @@
           "supportsPictureInPicture": true
         }
       ],
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            // You can list individual files here
+            "./assets/fonts/Poppins-Regular.ttf",
+            "./assets/fonts/Poppins-Medium.ttf",
+            "./assets/fonts/Poppins-Bold.ttf",
+            "./assets/fonts/Poppins-ExtraBold.ttf"
+          ]
+        }
+      ],
       "expo-secure-store",
       [
         "expo-contacts",
