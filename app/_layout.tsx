@@ -1,12 +1,11 @@
-import "../global.css";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View, Text } from "react-native";
-import { Slot, SplashScreen } from "expo-router";
 import * as Contacts from "expo-contacts";
-import * as SecureStore from "expo-secure-store";
-import Toast from "react-native-toast-message";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
+import { Slot, SplashScreen } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+import React, { useEffect, useState } from "react";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+import "../global.css";
 
 import StoreProvider from "@/components/StoreProvider";
 import { useAppDispatch, useAppSelector } from "@/hooks/use-redux";
@@ -14,6 +13,7 @@ import { useInternetToast } from "@/hooks/useInternet";
 import { checkAuth } from "@/redux/auth-slice";
 import { useSaveUserContactsFnMutation } from "@/redux/features/user-api/user-api";
 import { registerContactsBackgroundTask } from "@/utils/background-tasks";
+import { getTokenFromSecureStore, removeTokenFromSecureStore } from "@/utils/token";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -36,14 +36,14 @@ const RootLayout = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        const token = await SecureStore.getItemAsync("userToken");
+        const token = await getTokenFromSecureStore();
         if (token) {
           await dispatch(checkAuth()).unwrap();
         }
       } catch (error) {
         // Handle auth errors silently or with a toast
         console.error("Auth initialization failed:", error);
-        await SecureStore.deleteItemAsync("userToken");
+        await removeTokenFromSecureStore()
       } finally {
         setAppReady(true);
         await SplashScreen.hideAsync();

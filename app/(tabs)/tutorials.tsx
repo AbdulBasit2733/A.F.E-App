@@ -1,24 +1,24 @@
-import React, { useState, useCallback, useEffect } from "react";
-import * as Haptics from "expo-haptics";
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  Pressable,
-  TextInput,
-  ActivityIndicator,
-  RefreshControl,
-  Modal,
-  StatusBar,
-  Dimensions,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useGetAllTutorialsFnQuery } from "@/redux/features/tutorial-api/tutorial-api";
 import type { TUTORIALS_PROPS } from "@/redux/features/tutorial-api/types";
+import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  RefreshControl,
+  StatusBar,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 52) / 2;
@@ -56,10 +56,6 @@ const TutorialsScreen = () => {
       search: debouncedSearch,
       sortBy,
       sortOrder,
-    },
-    {
-      refetchOnMountOrArgChange: true,
-      refetchOnFocus: true,
     }
   );
 

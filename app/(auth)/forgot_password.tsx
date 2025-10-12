@@ -83,7 +83,7 @@ const ForgotPassword = () => {
         <View className="gap-2">
           <Text className="text-xl font-semibold">Registered Email</Text>
           <TextInput
-            className="border border-slate-400 font-medium rounded-md px-2 py-4 w-full"
+            className="border text-black border-slate-400 font-medium rounded-md px-2 py-4 w-full"
             onChangeText={setEmail}
             value={email}
             placeholder="Enter Your Email Address"

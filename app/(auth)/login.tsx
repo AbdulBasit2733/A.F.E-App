@@ -87,7 +87,7 @@ const Login = () => {
         <View className="gap-2">
           <Text className="text-xl font-semibold">Email</Text>
           <TextInput
-            className="border border-slate-400 font-medium rounded-md px-2 py-4 w-full"
+            className="border text-black border-slate-400 font-medium rounded-md px-2 py-4 w-full"
             onChangeText={setEmail}
             value={email}
             placeholder="Enter Your Email Address"
@@ -99,7 +99,7 @@ const Login = () => {
           <Text className="text-xl font-semibold">Password</Text>
           <View className="flex-row items-center border border-slate-400 rounded-md">
             <TextInput
-              className="flex-1 px-2 py-4 font-medium"
+              className="flex-1 px-2 py-4 font-medium text-black"
               onChangeText={setPassword}
               value={password}
               placeholder="Enter Your Password"

@@ -5,7 +5,6 @@ import React, { useEffect, useState } from "react";
 import {
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
@@ -14,6 +13,7 @@ import {
   View,
 } from "react-native";
 import RNPickerSelect from "react-native-picker-select";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { moderateScale, verticalScale } from "react-native-size-matters";
 
 export interface REGISTER_PROPS {
@@ -42,7 +42,7 @@ const InputField = ({
   <View className="gap-2">
     <Text className="text-xl font-semibold">{label}</Text>
     <TextInput
-      className="border border-slate-400 font-medium rounded-md px-2 py-4 w-full"
+      className="border border-slate-400 text-black font-medium rounded-md px-2 py-4 w-full"
       onChangeText={onChangeText}
       value={value}
       placeholder={placeholder}

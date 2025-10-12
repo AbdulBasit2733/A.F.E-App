@@ -6,8 +6,6 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        // The key is the class name (e.g., `font-spacemono`)
-        // The value is an array of font names you used in `useFonts`.
         spacemono: ["SpaceMono-Regular"],
         "poppins-bold": ["Poppins-Bold"],
         "poppins-regular": ["Poppins-Regular"],

@@ -9,9 +9,9 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { ReactNode, useEffect, useState } from "react";
-import * as Haptics from "expo-haptics";
 import {
   ActivityIndicator,
   Alert,

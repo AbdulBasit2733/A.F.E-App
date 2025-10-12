@@ -1,10 +1,10 @@
 // export const BACKEND_URL = "http://10.0.2.2:3000";
 // export const BACKEND_URL = "http://192.168.0.201:3000/api/v1";
 // export const BACKEND_URL = "http://192.168.0.201:3000/api/v1";
-export const BACKEND_URL =
-  `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/v1` || "http://192.168.0.201:3000/api/v1";
+export const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL
+  ? `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/v1`
+  : "http://192.168.0.201:3000/api/v1";
 
-  
 export function convertTo12HourFormat(isoString?: string): string {
   if (!isoString) {
     return "";

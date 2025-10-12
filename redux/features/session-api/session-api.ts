@@ -1,4 +1,3 @@
-import { API_RESPONSE_PROPS } from "@/types/common-types";
 import apiSlice from "../apiSlice";
 import type {
   ALL_REGISTERED_SESSION_RESPONSE,
@@ -44,6 +43,7 @@ export const sessionApi = apiSlice.injectEndpoints({
         url: `/sessions/session/${id}`,
         method: "GET",
       }),
+      providesTags:["Session"]
     }),
 
     registerSessionFn: builder.mutation<
@@ -70,6 +70,7 @@ export const sessionApi = apiSlice.injectEndpoints({
       }),
       providesTags: ["RegisteredSession"],
     }),
+    
   }),
 });
 

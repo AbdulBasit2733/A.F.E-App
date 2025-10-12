@@ -2,8 +2,8 @@ import { getTokenFromSecureStore, saveTokenToSecureStore } from "@/utils/token";
 import { BACKEND_URL } from "@/utils/utils";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
-import { CHECK_AUTH_REPONSE, LOGIN_API_RESPONSE, LOGIN_PROPS } from "./authTypes";
 import { USER_PROPS } from "../features/user-api/types";
+import { CHECK_AUTH_REPONSE, LOGIN_API_RESPONSE, LOGIN_PROPS } from "./authTypes";
 
 
 // Auth slice state type
@@ -38,7 +38,7 @@ export const loginUserFn = createAsyncThunk<
       await saveTokenToSecureStore(response.data?.token);
     }
 
-    console.log(response.data);
+    // console.log("Login User", response.data);
     
 
     return response.data;
@@ -71,7 +71,7 @@ export const checkAuth = createAsyncThunk<
       }
     );
 
-    console.log(response.data);
+    // console.log("Check Auth", response.data);
     
 
     return response.data;
@@ -117,8 +117,8 @@ const authSlice = createSlice({
         loginUserFn.fulfilled,
         (state, action: PayloadAction<LOGIN_API_RESPONSE>) => {
           state.isLoading = false;
-          state.isAuthenticated = action.payload.success ? true : false;
           state.user = action.payload.success ? action.payload.user : null;
+          state.isAuthenticated = action.payload.success ? true : false;
         }
       )
       .addCase(loginUserFn.rejected, (state, action) => {

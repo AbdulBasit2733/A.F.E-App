@@ -1,38 +1,37 @@
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  View,
-  ActivityIndicator,
-  Alert,
-  Text,
-  TextInput,
-  Pressable,
-  Image,
-  Modal,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useAppDispatch } from "@/hooks/use-redux";
-import Toast from "react-native-toast-message";
+import { useLazyGetCouponByCodeFnQuery } from "@/redux/features/coupon-api/coupon-api";
 import {
   useGetAllRegisteredSessionsFnQuery,
   useGetSessionByIdFnQuery,
   useRegisterSessionFnMutation,
 } from "@/redux/features/session-api/session-api";
-import { useGetUserDetailsFnQuery } from "@/redux/features/user-api/user-api";
-import { useLazyGetCouponByCodeFnQuery } from "@/redux/features/coupon-api/coupon-api";
 import { REGISTER_SESSION_PAYLOAD } from "@/redux/features/session-api/types";
+import { Insurance, Investment, USER_PROPS } from "@/redux/features/user-api/types";
+import { useGetUserDetailsFnQuery } from "@/redux/features/user-api/user-api";
 import {
-  FontAwesome,
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons,
   AntDesign,
   Feather,
+  Ionicons,
+  MaterialCommunityIcons,
+  MaterialIcons
 } from "@expo/vector-icons";
-import { Insurance, Investment, USER_PROPS } from "@/redux/features/user-api/types";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 const Form = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -45,6 +44,7 @@ const Form = () => {
   const { data: sessionDataResponse, isFetching } = useGetSessionByIdFnQuery({
     id: sessionId,
   });
+  
 
   const { data: userDataResponse } = useGetUserDetailsFnQuery();
 

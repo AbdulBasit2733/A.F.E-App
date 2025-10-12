@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
-import { View, ActivityIndicator, Text, FlatList } from "react-native";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { useGetAllRegisteredSessionsFnQuery } from "@/redux/features/session-api/session-api";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import {
   differenceInDays,
   format,
@@ -8,23 +7,27 @@ import {
   isToday,
   isTomorrow,
 } from "date-fns";
+import React from "react";
+import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useGetAllRegisteredSessionsFnQuery } from "@/redux/features/session-api/session-api";
 
 // Helper to convert MongoDB Decimal128 to number safely
-const decimal128ToNumber = (decimalObj?: { $numberDecimal: string } | number): number => {
+const decimal128ToNumber = (
+  decimalObj?: { $numberDecimal: string } | number
+): number => {
   if (!decimalObj) return 0;
   if (typeof decimalObj === "number") return decimalObj;
   return parseFloat(decimalObj.$numberDecimal);
 };
 
 const RegisteredSessions = () => {
-  const { data: registeredSessionResponse, isFetching: isLoading } = useGetAllRegisteredSessionsFnQuery();
+  const { data: registeredSessionResponse, isFetching: isLoading } =
+    useGetAllRegisteredSessionsFnQuery();
   const registeredSessions = registeredSessionResponse?.data ?? [];
 
-//   useEffect(() => {
-//     console.log("Registered Sessions data:", registeredSessions);
-//   }, [registeredSessions]);
+  //   useEffect(() => {
+  //     console.log("Registered Sessions data:", registeredSessions);
+  //   }, [registeredSessions]);
 
   if (isLoading) {
     return (
@@ -46,16 +49,15 @@ const RegisteredSessions = () => {
     return sessionDate >= todayStart;
   });
 
-//   console.log("Upcoming", upcomingSessions);
-  
+  //   console.log("Upcoming", upcomingSessions);
 
   // Sort sessions by nearest date first
   const sortedSessions = [...upcomingSessions].sort(
-    (a, b) => new Date(a.selectedDate).getTime() - new Date(b.selectedDate).getTime()
+    (a, b) =>
+      new Date(a.selectedDate).getTime() - new Date(b.selectedDate).getTime()
   );
 
-//   console.log("sorted Sessions", sortedSessions);
-  
+  //   console.log("sorted Sessions", sortedSessions);
 
   return (
     <View className="flex-1 bg-white">
@@ -64,7 +66,9 @@ const RegisteredSessions = () => {
           {/* Header */}
           <View className="px-4 py-6 flex-row items-center border-b border-gray-100 space-x-3">
             <Ionicons name="calendar-outline" size={24} color="#6566fc" />
-            <Text className="text-2xl font-semibold text-primary">Registered Sessions</Text>
+            <Text className="text-2xl font-semibold text-primary">
+              Registered Sessions
+            </Text>
           </View>
 
           {sortedSessions.length === 0 ? (
@@ -93,7 +97,9 @@ const RegisteredSessions = () => {
                 const sessionDate = new Date(item.selectedDate);
                 const dayOfWeek = format(sessionDate, "EEEE");
                 const daysRemaining = differenceInDays(sessionDate, new Date());
-                const relativeTime = formatDistanceToNow(sessionDate, { addSuffix: true });
+                const relativeTime = formatDistanceToNow(sessionDate, {
+                  addSuffix: true,
+                });
                 const sessionTime = format(sessionDate, "hh:mm a");
                 const hours = sessionDate.getHours();
                 const timeOfDay =
@@ -101,10 +107,12 @@ const RegisteredSessions = () => {
                 const displayDate = isToday(sessionDate)
                   ? "Today"
                   : isTomorrow(sessionDate)
-                  ? "Tomorrow"
-                  : format(sessionDate, "MMMM dd, yyyy");
+                    ? "Tomorrow"
+                    : format(sessionDate, "MMMM dd, yyyy");
 
-                const discountedPrice = decimal128ToNumber(item.discountedPrice);
+                const discountedPrice = decimal128ToNumber(
+                  item.discountedPrice
+                );
 
                 return (
                   <View
@@ -116,9 +124,15 @@ const RegisteredSessions = () => {
                         <Text className="text-lg font-semibold capitalize text-gray-900 mb-1">
                           {sessionData.title}
                         </Text>
-                        <Text className="text-sm text-gray-600">Scheduled for: {displayDate}</Text>
-                        <Text className="text-sm text-gray-600">Day: {dayOfWeek}</Text>
-                        <Text className="text-sm text-gray-600">Time: {sessionTime} ({timeOfDay})</Text>
+                        <Text className="text-sm text-gray-600">
+                          Scheduled for: {displayDate}
+                        </Text>
+                        <Text className="text-sm text-gray-600">
+                          Day: {dayOfWeek}
+                        </Text>
+                        <Text className="text-sm text-gray-600">
+                          Time: {sessionTime} ({timeOfDay})
+                        </Text>
                         <Text className="text-sm text-gray-600">
                           {daysRemaining > 0
                             ? `${daysRemaining} days remaining (${relativeTime})`
@@ -129,7 +143,9 @@ const RegisteredSessions = () => {
                         </Text>
                       </>
                     ) : (
-                      <Text className="text-sm text-gray-500 italic">No Title Available</Text>
+                      <Text className="text-sm text-gray-500 italic">
+                        No Title Available
+                      </Text>
                     )}
                   </View>
                 );
