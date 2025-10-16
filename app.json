@@ -19,7 +19,12 @@
       "permissions": ["INTERNET", "READ_CONTACTS"],
       "package": "com.dev.abdulbasit.afe",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_VIDEO", 
+        "android.permission.READ_MEDIA_AUDIO", 
+        "android.permission.WRITE_EXTERNAL_STORAGE" 
+      ]
     },
     "web": {
       "output": "static",
@@ -51,6 +56,13 @@
         {
           "supportsBackgroundPlayback": true,
           "supportsPictureInPicture": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to select profile pictures.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to take profile pictures."
         }
       ],
       [
