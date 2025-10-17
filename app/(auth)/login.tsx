@@ -1,6 +1,6 @@
 import { useAppDispatch } from "@/hooks/use-redux";
 import { loginUserFn } from "@/redux/auth-slice/index";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Pressable,
@@ -19,6 +19,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false); // Loading state for button
   const dispatch = useAppDispatch();
+  const router = useRouter();
 
   // Handle Login with loading state
   const handleLoginUser = async () => {
@@ -35,6 +36,7 @@ const Login = () => {
             25,
             50
           );
+          router.replace("/(tabs)"); // Replace with your authenticated route
         } else {
           ToastAndroid.showWithGravityAndOffset(
             `${result.message}`,

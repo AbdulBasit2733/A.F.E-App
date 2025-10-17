@@ -1,9 +1,16 @@
 import * as Contacts from "expo-contacts";
 import { useFonts } from "expo-font";
-import { Slot, SplashScreen } from "expo-router";
+import { Slot, SplashScreen, useRouter, useSegments } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
-import { Alert, Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  Alert,
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import "../global.css";
@@ -13,7 +20,10 @@ import { useAppDispatch, useAppSelector } from "@/hooks/use-redux";
 import { useInternetToast } from "@/hooks/useInternet";
 import { checkAuth } from "@/redux/auth-slice";
 import { useSaveUserContactsFnMutation } from "@/redux/features/user-api/user-api";
-import { getTokenFromSecureStore, removeTokenFromSecureStore } from "@/utils/token";
+import {
+  getTokenFromSecureStore,
+  removeTokenFromSecureStore,
+} from "@/utils/token";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -30,26 +40,39 @@ const ContactsConsentDialog = ({ visible, onAgree, onDecline }) => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Contacts Access</Text>
-          
+
           <Text style={styles.modalDescription}>
-            To help you connect with friends and family, we need access to your contacts.
+            To help you connect with friends and family, we need access to your
+            contacts.
           </Text>
-          
-          <Text style={styles.modalBulletPoint}>• <Text style={styles.boldText}>What we collect:</Text> Contact names, phone numbers, and email addresses</Text>
-          <Text style={styles.modalBulletPoint}>• <Text style={styles.boldText}>Why we need it:</Text> To help you find and connect with people you know</Text>
-          <Text style={styles.modalBulletPoint}>• <Text style={styles.boldText}>Your privacy:</Text> Your contacts are encrypted and never shared with third parties</Text>
-          <Text style={styles.modalBulletPoint}>• <Text style={styles.boldText}>Your control:</Text> You can disable this feature anytime in Settings</Text>
+
+          <Text style={styles.modalBulletPoint}>
+            • <Text style={styles.boldText}>What we collect:</Text> Contact
+            names, phone numbers, and email addresses
+          </Text>
+          <Text style={styles.modalBulletPoint}>
+            • <Text style={styles.boldText}>Why we need it:</Text> To help you
+            find and connect with people you know
+          </Text>
+          <Text style={styles.modalBulletPoint}>
+            • <Text style={styles.boldText}>Your privacy:</Text> Your contacts
+            are encrypted and never shared with third parties
+          </Text>
+          <Text style={styles.modalBulletPoint}>
+            • <Text style={styles.boldText}>Your control:</Text> You can disable
+            this feature anytime in Settings
+          </Text>
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.button, styles.agreeButton]} 
+            <TouchableOpacity
+              style={[styles.button, styles.agreeButton]}
               onPress={onAgree}
             >
               <Text style={styles.agreeButtonText}>Agree</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.button, styles.declineButton]} 
+
+            <TouchableOpacity
+              style={[styles.button, styles.declineButton]}
               onPress={onDecline}
             >
               <Text style={styles.declineButtonText}>Not Now</Text>
@@ -71,6 +94,9 @@ const RootLayout = () => {
   const dispatch = useAppDispatch();
   const [saveContactsFn] = useSaveUserContactsFnMutation();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  const router = useRouter(); // Add router
+  const segments = useSegments(); // Add segments
 
   const [appReady, setAppReady] = useState(false);
   const [showConsentDialog, setShowConsentDialog] = useState(false);
@@ -96,11 +122,27 @@ const RootLayout = () => {
     initializeApp();
   }, [dispatch]);
 
+  useEffect(() => {
+    if (!appReady) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // Redirect to login if not authenticated
+      router.replace("/(auth)/login");
+    } else if (isAuthenticated && inAuthGroup) {
+      // Redirect to authenticated screens if logged in
+      router.replace("/(tabs)"); // Replace with your authenticated route
+    }
+  }, [isAuthenticated, segments, appReady]);
+
   // Function to request contacts (call this from a settings screen or feature UI)
   const requestContactsAccess = async () => {
     const alreadyAsked = await SecureStore.getItemAsync("contactsConsentAsked");
-    const permissionDenied = await SecureStore.getItemAsync("contactsPermissionDenied");
-    
+    const permissionDenied = await SecureStore.getItemAsync(
+      "contactsPermissionDenied"
+    );
+
     // Don't show if user already denied multiple times
     if (permissionDenied === "true") {
       Alert.alert(
@@ -117,10 +159,10 @@ const RootLayout = () => {
   const handleAgreeToContactsAccess = async () => {
     setShowConsentDialog(false);
     await SecureStore.setItemAsync("contactsConsentAsked", "true");
-    
+
     // NOW request the system permission after user agreed to disclosure
     const { status } = await Contacts.requestPermissionsAsync();
-    
+
     if (status === "granted") {
       await fetchAndUploadContacts();
       Toast.show({
@@ -142,7 +184,7 @@ const RootLayout = () => {
   const handleDeclineContactsAccess = async () => {
     setShowConsentDialog(false);
     await SecureStore.setItemAsync("contactsConsentAsked", "true");
-    
+
     Toast.show({
       type: "info",
       text1: "You can enable contacts access anytime in Settings",
