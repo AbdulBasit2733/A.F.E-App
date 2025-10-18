@@ -418,7 +418,7 @@ const Form = () => {
     }
 
     if (errorMessages.length > 0) {
-      Alert.alert("Validation Error", errorMessages.join("\n"));
+      Alert.alert("Validation Error", errorMessages[0]);
       return;
     }
 
@@ -464,7 +464,9 @@ const Form = () => {
           [{ text: "OK", onPress: () => router.push("/(tabs)/registered") }]
         );
       } else {
-        Alert.alert("Error", result?.message || "Something went wrong");
+        console.log(result);
+        
+        Alert.alert(result?.message || "Something went wrong");
       }
     } catch (error: any) {
       // Don't show error if request was aborted

@@ -1,8 +1,10 @@
 import { useRegisterUserFnMutation } from "@/redux/features/auth-api/auth-api";
 import RNDateTimePicker from "@react-native-community/datetimepicker";
 import { Link, router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -32,12 +34,14 @@ const InputField = ({
   onChangeText,
   placeholder,
   keyboardType = "default",
+  secureTextEntry = false,
 }: {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder: string;
   keyboardType?: import("react-native").KeyboardTypeOptions;
+  secureTextEntry?: boolean;
 }) => (
   <View className="gap-2">
     <Text className="text-xl font-semibold">{label}</Text>
@@ -47,11 +51,15 @@ const InputField = ({
       value={value}
       placeholder={placeholder}
       keyboardType={keyboardType}
+      secureTextEntry={secureTextEntry}
     />
   </View>
 );
 
 const Register = () => {
+
+  // console.log("Register");
+  
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [gender, setGender] = useState("Male");
@@ -63,10 +71,6 @@ const Register = () => {
 
   const [registerFn, { isLoading }] = useRegisterUserFnMutation();
 
-  useEffect(() => {
-    // You can clear status or add side effects here if needed
-  }, []);
-
   const onChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || dob;
     setShowModel(Platform.OS === "ios"); // keep picker open on iOS, close on Android
@@ -74,61 +78,87 @@ const Register = () => {
   };
 
   const handleRegisterUser = async () => {
-    if (firstname && lastname && gender && email && password && dob) {
-      const formData: REGISTER_PROPS = {
-        firstname,
-        lastname,
-        email,
-        password,
-        dob: dob.toISOString(), // send ISO string
-        gender,
-      };
-      try {
-        const data = await registerFn({ formData }).unwrap();
-        if (data.success) {
-          ToastAndroid.showWithGravityAndOffset(
-            "Registered Successfully, Please Verify Your Email",
-            ToastAndroid.LONG,
-            ToastAndroid.BOTTOM,
-            25,
-            50
-          );
-          setTimeout(() => {
-            router.push("/(auth)/login");
-          }, 2000);
-        } else {
-          ToastAndroid.showWithGravityAndOffset(
-            data.message,
-            ToastAndroid.LONG,
-            ToastAndroid.BOTTOM,
-            25,
-            50
-          );
-        }
-      } catch {
+    // ✅ Validation
+    if (!firstname || !lastname || !email || !password) {
+      const message = "Please fill in all required fields";
+      if (Platform.OS === "android") {
         ToastAndroid.showWithGravityAndOffset(
-          "Registration failed. Please try again.",
+          message,
           ToastAndroid.LONG,
           ToastAndroid.BOTTOM,
           25,
           50
         );
+      } else {
+        Alert.alert("Validation Error", message);
       }
-    } else {
-      ToastAndroid.showWithGravityAndOffset(
-        "All fields are required.",
-        ToastAndroid.LONG,
-        ToastAndroid.BOTTOM,
-        25,
-        50
-      );
+      return;
+    }
+
+    try {
+      const formData: REGISTER_PROPS = {
+        firstname,
+        lastname,
+        email,
+        password,
+        dob: dob.toISOString(),
+        gender,
+      };
+
+      const data = await registerFn({ formData }).unwrap();
+      // console.log("Register Response", data);
+
+      if (data.success) {
+        const successMessage = "Registered Successfully, Please Verify Your Email";
+        if (Platform.OS === "android") {
+          ToastAndroid.showWithGravityAndOffset(
+            successMessage,
+            ToastAndroid.LONG,
+            ToastAndroid.BOTTOM,
+            25,
+            50
+          );
+        } else {
+          Alert.alert("Success", successMessage);
+        }
+
+        setTimeout(() => {
+          router.push("/(auth)/login");
+        }, 2000);
+      } else {
+        const errorMessage = data.message || "Registration failed";
+        if (Platform.OS === "android") {
+          ToastAndroid.showWithGravityAndOffset(
+            errorMessage,
+            ToastAndroid.LONG,
+            ToastAndroid.BOTTOM,
+            25,
+            50
+          );
+        } else {
+          Alert.alert("Error", errorMessage);
+        }
+      }
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      const errorMessage = error?.data?.message || "An error occurred during registration";
+      if (Platform.OS === "android") {
+        ToastAndroid.showWithGravityAndOffset(
+          errorMessage,
+          ToastAndroid.LONG,
+          ToastAndroid.BOTTOM,
+          25,
+          50
+        );
+      } else {
+        Alert.alert("Error", errorMessage);
+      }
     }
   };
 
+  // ✅ MOVED return statement to component level (not inside handleRegisterUser)
   return (
-    <ScrollView
-      style={{ padding: moderateScale(20), backgroundColor: "white" }}
-    >
+    <ScrollView style={{ padding: moderateScale(20), backgroundColor: "white" }}>
       <SafeAreaView
         className="shadow-md rounded-md bg-slate-100 py-10 px-5 gap-5"
         style={{
@@ -149,6 +179,7 @@ const Register = () => {
           onChangeText={setFirstname}
           placeholder="Enter Your First Name"
         />
+
         <InputField
           label="Last Name"
           value={lastname}
@@ -166,6 +197,7 @@ const Register = () => {
                 { label: "Male", value: "Male" },
                 { label: "Female", value: "Female" },
               ]}
+              placeholder={{ label: "Select Gender", value: null }}
             />
           </View>
         </View>
@@ -174,16 +206,23 @@ const Register = () => {
           <Text className="text-xl font-semibold">Date of Birth</Text>
           <Pressable
             onPress={() => setShowModel(true)}
-            className="border border-slate-400 font-medium rounded-md px-2 py-4 w-full bg-transparent"
+            className="border border-slate-400 font-medium rounded-md px-2 py-4 w-full bg-white"
           >
-            <Text className="text-lg">{dob.toLocaleDateString("en-US")}</Text>
+            <Text className="text-lg text-black">
+              {dob.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </Text>
           </Pressable>
           {showModel && (
             <RNDateTimePicker
               value={dob}
               mode="date"
-              display="calendar"
+              display={Platform.OS === "ios" ? "spinner" : "calendar"}
               onChange={onChange}
+              maximumDate={new Date()} // ✅ Prevent future dates
             />
           )}
         </View>
@@ -198,9 +237,9 @@ const Register = () => {
 
         <View className="gap-2">
           <Text className="text-xl font-semibold">Password</Text>
-          <View className="flex-row items-center border border-slate-400 rounded-md">
+          <View className="flex-row items-center border border-slate-400 rounded-md bg-white">
             <TextInput
-              className="flex-1 px-2 py-4 font-medium"
+              className="flex-1 px-2 py-4 font-medium text-black"
               onChangeText={setPassword}
               value={password}
               placeholder="Enter Your Password"
@@ -220,19 +259,33 @@ const Register = () => {
         <Pressable
           onPress={handleRegisterUser}
           disabled={isLoading}
-          className={`px-4 py-3 rounded-lg mx-24 ${isLoading ? "bg-gray-400" : "bg-primary"}`}
+          style={({ pressed }) => ({
+            opacity: pressed || isLoading ? 0.7 : 1,
+          })}
+          className={`px-4 py-3 rounded-lg mx-24 ${
+            isLoading ? "bg-gray-400" : "bg-primary"
+          }`}
         >
-          <Text className="text-center text-white font-semibold text-lg">
-            {isLoading ? "Registering..." : "Register"}
-          </Text>
+          {isLoading ? (
+            <View className="flex-row items-center justify-center gap-2">
+              <ActivityIndicator color="white" size="small" />
+              <Text className="text-center text-white font-semibold text-lg">
+                Registering...
+              </Text>
+            </View>
+          ) : (
+            <Text className="text-center text-white font-semibold text-lg">Register</Text>
+          )}
         </Pressable>
 
-        <SafeAreaView className="flex-row justify-between items-center px-10 py-10 gap-2">
+        <View className="flex-row justify-center items-center py-10 gap-2">
           <Text className="text-xl">Already have an account?</Text>
-          <Link href={"/(auth)/login"}>
-            <Text className="text-primary text-xl font-bold">Login</Text>
+          <Link href="/(auth)/login" asChild>
+            <Pressable>
+              <Text className="text-primary text-xl font-bold">Login</Text>
+            </Pressable>
           </Link>
-        </SafeAreaView>
+        </View>
       </SafeAreaView>
     </ScrollView>
   );
