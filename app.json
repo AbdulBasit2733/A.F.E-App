@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "A.F.E",
-    "slug": "afe-v2",
+    "slug": "afe",
     "version": "1.0.3",
     "orientation": "default",
     "icon": "./assets/images/logo2x.png",
@@ -19,6 +19,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
+        "monochromeImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": ["INTERNET", "READ_CONTACTS", "CAMERA"],

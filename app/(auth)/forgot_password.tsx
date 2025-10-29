@@ -1,4 +1,5 @@
-import { useForgotPasswordFnMutation } from "@/redux/features/user-api/user-api";
+import { useAppDispatch } from "@/hooks/use-redux";
+import { forgotPasswordFn } from "@/redux/auth-slice";
 import { Link, router } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, Text, TextInput, ToastAndroid, View } from "react-native";
@@ -7,13 +8,19 @@ import { moderateScale, verticalScale } from "react-native-size-matters";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [forgotPasswordFn, { isLoading }] = useForgotPasswordFnMutation();
+  const dispatch = useAppDispatch();
 
   const handleUpdatePassword = async () => {
+    setIsLoading(true)
     if (email && email.includes("@")) {
       try {
-        const data = await forgotPasswordFn({ email }).unwrap();
+        console.log(email);
+
+        const data = await dispatch(
+          forgotPasswordFn({ email: email })
+        ).unwrap();
         if (data.success) {
           ToastAndroid.showWithGravityAndOffset(
             `${data.message}`,
@@ -22,6 +29,7 @@ const ForgotPassword = () => {
             25,
             50
           );
+          setIsLoading(false)
           setTimeout(() => {
             router.push("/(auth)/login");
           }, 2000);
@@ -33,6 +41,7 @@ const ForgotPassword = () => {
             25,
             50
           );
+          setIsLoading(false)
         }
       } catch (error) {
         ToastAndroid.showWithGravityAndOffset(
@@ -42,6 +51,7 @@ const ForgotPassword = () => {
           25,
           50
         );
+        setIsLoading(false)
       }
     } else if (!email.includes("@")) {
       ToastAndroid.showWithGravityAndOffset(
@@ -51,6 +61,7 @@ const ForgotPassword = () => {
         25,
         50
       );
+      setIsLoading(false)
     } else {
       ToastAndroid.showWithGravityAndOffset(
         "All Fields Are Required",
@@ -59,6 +70,7 @@ const ForgotPassword = () => {
         25,
         50
       );
+      setIsLoading(false)
     }
   };
 

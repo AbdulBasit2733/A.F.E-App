@@ -74,12 +74,12 @@ export const saveUserContacts = createAsyncThunk(
   "user/saveContacts",
   async (contacts, { rejectWithValue }) => {
     // console.log("redux contacts",contacts);
-    
+
     try {
       const token = await getTokenFromSecureStore();
       const response = await axios.post(
         `${BACKEND_URL}/api/v1/users/save-contacts`,
-        {contacts},
+        { contacts },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,25 +96,25 @@ export const saveUserContacts = createAsyncThunk(
   }
 );
 
-export const forgotPassword = createAsyncThunk(
-  "/user/forgot_password",
-  async (email, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(
-        `${BACKEND_URL}/api/v1/users/forgot-password`,
-        { email } // No need to repeat `email: email` (ES6 shorthand syntax)
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error in forgotPassword:", error);
+// export const forgotPassword = createAsyncThunk(
+//   "/user/forgot_password",
+//   async (email, { rejectWithValue }) => {
+//     try {
+//       const response = await axios.post(
+//         `${BACKEND_URL}/api/v1/users/forgot-password`,
+//         { email } // No need to repeat `email: email` (ES6 shorthand syntax)
+//       );
+//       return response.data;
+//     } catch (error) {
+//       console.error("Error in forgotPassword:", error);
 
-      return rejectWithValue({
-        success: false,
-        message: error.response?.data?.message || "Something went wrong",
-      });
-    }
-  }
-);
+//       return rejectWithValue({
+//         success: false,
+//         message: error.response?.data?.message || "Something went wrong",
+//       });
+//     }
+//   }
+// );
 
 // User slice to manage state
 const userSlice = createSlice({

@@ -3,8 +3,11 @@ import { BACKEND_URL } from "@/utils/utils";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
 import { USER_PROPS } from "../features/user-api/types";
-import { CHECK_AUTH_REPONSE, LOGIN_API_RESPONSE, LOGIN_PROPS } from "./authTypes";
-
+import {
+  CHECK_AUTH_REPONSE,
+  LOGIN_API_RESPONSE,
+  LOGIN_PROPS,
+} from "./authTypes";
 
 // Auth slice state type
 interface AuthState {
@@ -39,7 +42,6 @@ export const loginUserFn = createAsyncThunk<
     }
 
     // console.log("Login User", response.data);
-    
 
     return response.data;
   } catch (err: any) {
@@ -48,6 +50,33 @@ export const loginUserFn = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
+
+export const forgotPasswordFn = createAsyncThunk(
+  "user/forgotPassword",
+  async ({ email }: { email: string }, { rejectWithValue }) => {
+    try {
+      const token = await getTokenFromSecureStore();
+
+      const response = await axios.post(
+        `${BACKEND_URL}/users/forgot-password`,
+        { email },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          withCredentials: true,
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to send reset link" }
+      );
+    }
+  }
+);
 
 // Async thunk for checking authentication
 export const checkAuth = createAsyncThunk<
@@ -59,20 +88,16 @@ export const checkAuth = createAsyncThunk<
     const token = await getTokenFromSecureStore();
 
     if (!token) {
-      return rejectWithValue({ success: false, message: "No token found"});
+      return rejectWithValue({ success: false, message: "No token found" });
     }
 
-    const response = await axios.get(
-      `${BACKEND_URL}/users/auth/user-auth`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${BACKEND_URL}/users/auth/user-auth`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     // console.log("Check Auth", response.data);
-    
 
     return response.data;
   } catch (error) {
@@ -117,7 +142,7 @@ const authSlice = createSlice({
         loginUserFn.fulfilled,
         (state, action: PayloadAction<LOGIN_API_RESPONSE>) => {
           console.log("Action", action.payload);
-          
+
           state.isLoading = false;
           state.user = action.payload.success ? action.payload.user : null;
           state.isAuthenticated = action.payload.success ? true : false;
@@ -150,5 +175,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logoutUser,setUser } = authSlice.actions;
+export const { logoutUser, setUser } = authSlice.actions;
 export default authSlice.reducer;

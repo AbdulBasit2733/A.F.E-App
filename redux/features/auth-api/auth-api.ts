@@ -14,15 +14,7 @@ export const authApi = apiSlice.injectEndpoints({
         body: formData,
       }),
     }),
-    forgotPasswordFn: builder.mutation<API_RESPONSE_PROPS, { email: string }>({
-      query: ({ email }) => ({
-        url: `/users/forgot-password`,
-        method: "POST",
-        body: email,
-      }),
-    }),
   }),
-  overrideExisting: true,
 });
 
 // Export hooks for convenience
