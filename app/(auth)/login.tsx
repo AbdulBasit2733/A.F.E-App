@@ -37,18 +37,12 @@ const Login = () => {
             50
           );
           router.replace("/(tabs)"); // Replace with your authenticated route
-        } else {
-          ToastAndroid.showWithGravityAndOffset(
-            `${result.message}`,
-            ToastAndroid.LONG,
-            ToastAndroid.TOP,
-            25,
-            50
-          );
         }
-      } catch (error) {
+      } catch (error: any) {
+        // console.log(error);
+
         ToastAndroid.showWithGravityAndOffset(
-          "Login failed, please try again.",
+          error,
           ToastAndroid.LONG,
           ToastAndroid.CENTER,
           25,
@@ -70,7 +64,9 @@ const Login = () => {
   };
 
   return (
-    <SafeAreaProvider style={{ padding: moderateScale(20), backgroundColor: "white" }}>
+    <SafeAreaProvider
+      style={{ padding: moderateScale(20), backgroundColor: "white" }}
+    >
       <SafeAreaView
         className="shadow-md rounded-md bg-slate-100 py-10 px-5 gap-5"
         style={{
@@ -114,14 +110,18 @@ const Login = () => {
                 paddingVertical: 8,
               }}
             >
-              <Text className="text-primary font-semibold">{showPassword ? "Hide" : "Show"}</Text>
+              <Text className="text-primary font-semibold">
+                {showPassword ? "Hide" : "Show"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <SafeAreaView className="flex-row justify-end">
           <Link href={"/(auth)/forgot_password"}>
-            <Text className="text-primary text-lg underline font-semibold">Forgot Password</Text>
+            <Text className="text-primary text-lg underline font-semibold">
+              Forgot Password
+            </Text>
           </Link>
         </SafeAreaView>
 

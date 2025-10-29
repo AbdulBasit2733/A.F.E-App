@@ -16,7 +16,7 @@ const ForgotPassword = () => {
     setIsLoading(true)
     if (email && email.includes("@")) {
       try {
-        console.log(email);
+        // console.log(email);
 
         const data = await dispatch(
           forgotPasswordFn({ email: email })

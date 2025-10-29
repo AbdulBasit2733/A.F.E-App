@@ -141,7 +141,7 @@ const authSlice = createSlice({
       .addCase(
         loginUserFn.fulfilled,
         (state, action: PayloadAction<LOGIN_API_RESPONSE>) => {
-          console.log("Action", action.payload);
+          // console.log("Action", action.payload);
 
           state.isLoading = false;
           state.user = action.payload.success ? action.payload.user : null;

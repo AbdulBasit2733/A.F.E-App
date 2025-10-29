@@ -464,7 +464,7 @@ const Form = () => {
           [{ text: "OK", onPress: () => router.push("/(tabs)/registered") }]
         );
       } else {
-        console.log(result);
+        // console.log(result);
         
         Alert.alert(result?.message || "Something went wrong");
       }
