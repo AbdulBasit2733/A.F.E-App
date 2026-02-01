@@ -17,13 +17,14 @@
         "EXPO_PUBLIC_BACKEND_URL": "http://192.168.0.201:3000"
       }
     },
-    "testing": {
+    "closed-testing": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
       },
+      "channel": "closed-testing",
       "env": {
-        "EXPO_PUBLIC_BACKEND_URL": "http://192.168.0.201:3000"
+        "EXPO_PUBLIC_BACKEND_URL": "https://a-f-e-server.onrender.com"
       }
     },
     "production": {
