@@ -415,7 +415,7 @@ const Index = () => {
   return (
     <GestureHandlerRootView className="flex-1">
       <SafeAreaProvider className="bg-gray-50">
-        <SafeAreaView edges={['left', 'right']} className="flex-1" style={{ padding: moderateScale(20) }}>
+        <SafeAreaView className="flex-1" style={{ padding: moderateScale(20) }}>
           <View className="mb-6">
             <Text
               style={{ fontFamily: "Poppins-Regular" }}

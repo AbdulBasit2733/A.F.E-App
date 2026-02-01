@@ -352,7 +352,7 @@ const TutorialsScreen = () => {
   }
 
   return (
-    <SafeAreaView edges={['left', 'right']} className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
