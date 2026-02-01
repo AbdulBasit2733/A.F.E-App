@@ -2,18 +2,16 @@ import { getTokenFromSecureStore, saveTokenToSecureStore } from "@/utils/token";
 import { BACKEND_URL } from "@/utils/utils";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
-import { CHECK_AUTH_REPONSE, LOGIN_API_RESPONSE, LOGIN_PROPS } from "./authTypes";
-
-// User type
-interface UserProps {
-  email: string | null;
-  firstname: string | null;
-  lastname: string | null;
-}
+import { USER_PROPS } from "../features/user-api/types";
+import {
+  CHECK_AUTH_REPONSE,
+  LOGIN_API_RESPONSE,
+  LOGIN_PROPS,
+} from "./authTypes";
 
 // Auth slice state type
 interface AuthState {
-  user: UserProps | null;
+  user: USER_PROPS | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   error?: string;
@@ -43,8 +41,7 @@ export const loginUserFn = createAsyncThunk<
       await saveTokenToSecureStore(response.data?.token);
     }
 
-    console.log(response.data);
-    
+    // console.log("Login User", response.data);
 
     return response.data;
   } catch (err: any) {
@@ -53,6 +50,33 @@ export const loginUserFn = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
+
+export const forgotPasswordFn = createAsyncThunk(
+  "user/forgotPassword",
+  async ({ email }: { email: string }, { rejectWithValue }) => {
+    try {
+      const token = await getTokenFromSecureStore();
+
+      const response = await axios.post(
+        `${BACKEND_URL}/users/forgot-password`,
+        { email },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          withCredentials: true,
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to send reset link" }
+      );
+    }
+  }
+);
 
 // Async thunk for checking authentication
 export const checkAuth = createAsyncThunk<
@@ -64,20 +88,16 @@ export const checkAuth = createAsyncThunk<
     const token = await getTokenFromSecureStore();
 
     if (!token) {
-      return rejectWithValue({ success: false, message: "No token found"});
+      return rejectWithValue({ success: false, message: "No token found" });
     }
 
-    const response = await axios.get(
-      `${BACKEND_URL}/users/auth/user-auth`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.get(`${BACKEND_URL}/users/auth/user-auth`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-    console.log(response.data);
-    
+    // console.log("Check Auth", response.data);
 
     return response.data;
   } catch (error) {
@@ -107,6 +127,9 @@ const authSlice = createSlice({
       state.user = null;
       state.error = undefined;
     },
+    setUser: (state, action: PayloadAction<USER_PROPS>) => {
+      state.user = action.payload;
+    },
   },
   extraReducers: (builder) => {
     // Login
@@ -118,9 +141,11 @@ const authSlice = createSlice({
       .addCase(
         loginUserFn.fulfilled,
         (state, action: PayloadAction<LOGIN_API_RESPONSE>) => {
+          // console.log("Action", action.payload);
+
           state.isLoading = false;
-          state.isAuthenticated = action.payload.success ? true : false;
           state.user = action.payload.success ? action.payload.user : null;
+          state.isAuthenticated = action.payload.success ? true : false;
         }
       )
       .addCase(loginUserFn.rejected, (state, action) => {
@@ -150,5 +175,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logoutUser } = authSlice.actions;
+export const { logoutUser, setUser } = authSlice.actions;
 export default authSlice.reducer;

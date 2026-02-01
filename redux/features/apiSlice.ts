@@ -1,6 +1,7 @@
 import { getTokenFromSecureStore } from "@/utils/token";
 import { BACKEND_URL } from "@/utils/utils";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+// console.log(BACKEND_URL);
 
 const apiSlice = createApi({
   reducerPath: "api",

@@ -40,5 +40,5 @@ export interface LOGIN_PROPS {
 }
 
 export interface CHECK_AUTH_REPONSE extends API_RESPONSE_PROPS {
-  data:USER_PROPS
+  data: USER_PROPS;
 }

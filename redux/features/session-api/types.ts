@@ -22,6 +22,9 @@ export interface SessionsResponse extends API_RESPONSE_PROPS {
     total: number;
     page: number;
     pages: number;
+    limit: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
   };
 }
 export interface SINGLE_SESSION_RESPONSE extends API_RESPONSE_PROPS {
@@ -38,17 +41,17 @@ export interface COUPON_PROPS {
 }
 
 export interface REGISTERED_SESSION {
-  _id: string;              // Mongo ObjectId string
-  sessionId: string;        // sessionId as string (ObjectId converted)
-  sessions: Session;        // nested Session object with session details
-  userId: string;           // userId ObjectId string
-  selectedDate: string;     // ISO date string
-  couponId?: string;        // optional couponId ObjectId string
-  coupon?: COUPON_PROPS;    // optional populated coupon details
-  originalPrice: number;    // from Decimal128 converted to number
-  discountedPrice: number;  // from Decimal128 converted to number
+  _id: string; // Mongo ObjectId string
+  sessionId: string; // sessionId as string (ObjectId converted)
+  sessions: Session; // nested Session object with session details
+  userId: string; // userId ObjectId string
+  selectedDate: string; // ISO date string
+  couponId?: string; // optional couponId ObjectId string
+  coupon?: COUPON_PROPS; // optional populated coupon details
+  originalPrice: number; // from Decimal128 converted to number
+  discountedPrice: number; // from Decimal128 converted to number
   paymentStatus: string;
-  createdAt?: string;       // ISO string timestamps optional
+  createdAt?: string; // ISO string timestamps optional
   updatedAt?: string;
   __v?: number;
 }

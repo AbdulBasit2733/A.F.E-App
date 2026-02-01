@@ -1,4 +1,3 @@
-import { API_RESPONSE_PROPS } from "@/types/common-types";
 import apiSlice from "../apiSlice";
 import type {
   ALL_REGISTERED_SESSION_RESPONSE,
@@ -18,12 +17,14 @@ export const sessionApi = apiSlice.injectEndpoints({
         date?: string;
         sessionType?: string;
         mode?: string;
+        search?:string;
       }
     >({
-      query: ({ page = 1, limit = 10, date, sessionType, mode }) => {
+      query: ({ page = 1, limit = 10, date, sessionType, mode, search }) => {
         const params = new URLSearchParams();
 
         if (page) params.append("page", page.toString());
+        if (search) params.append("search", search.toString());
         if (limit) params.append("limit", limit.toString());
         if (date) params.append("date", date);
         if (sessionType) params.append("sessionType", sessionType);
@@ -42,6 +43,7 @@ export const sessionApi = apiSlice.injectEndpoints({
         url: `/sessions/session/${id}`,
         method: "GET",
       }),
+      providesTags:["Session"]
     }),
 
     registerSessionFn: builder.mutation<
@@ -68,6 +70,7 @@ export const sessionApi = apiSlice.injectEndpoints({
       }),
       providesTags: ["RegisteredSession"],
     }),
+    
   }),
 });
 
