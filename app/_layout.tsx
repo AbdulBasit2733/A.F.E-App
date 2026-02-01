@@ -246,15 +246,14 @@ const RootLayout = () => {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }}>
-        <Slot />
-        <Toast />
-        <ContactsConsentDialog
-          visible={showConsentDialog}
-          onAgree={handleAgreeToContactsAccess}
-          onDecline={handleDeclineContactsAccess}
-        />
-      </SafeAreaView>
+
+      <Slot />
+      <Toast />
+      <ContactsConsentDialog
+        visible={showConsentDialog}
+        onAgree={handleAgreeToContactsAccess}
+        onDecline={handleDeclineContactsAccess}
+      />
     </SafeAreaProvider>
   );
 };

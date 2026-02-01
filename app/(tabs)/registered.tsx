@@ -62,7 +62,7 @@ const RegisteredSessions = () => {
   return (
     <View className="flex-1 bg-white">
       <SafeAreaProvider>
-        <SafeAreaView className="flex-1">
+        <SafeAreaView edges={['left', 'right']} className="flex-1">
           {/* Header */}
           <View className="px-4 py-6 flex-row items-center border-b border-gray-100 space-x-3">
             <Ionicons name="calendar-outline" size={24} color="#6566fc" />

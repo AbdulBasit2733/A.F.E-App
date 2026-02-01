@@ -352,7 +352,7 @@ const TutorialsScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView edges={['left', 'right']} className="flex-1 bg-gray-50">
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
@@ -501,15 +501,13 @@ const SortOption: React.FC<SortOptionProps> = React.memo(
           transform: [{ scale: pressed ? 0.98 : 1 }],
           opacity: pressed ? 0.9 : 1,
         })}
-        className={`p-4 rounded-2xl border-2 flex-row items-center justify-between ${
-          isActive ? "bg-[#6566fc] border-[#6566fc]" : "bg-white border-gray-200"
-        }`}
+        className={`p-4 rounded-2xl border-2 flex-row items-center justify-between ${isActive ? "bg-[#6566fc] border-[#6566fc]" : "bg-white border-gray-200"
+          }`}
       >
         <View className="flex-row items-center gap-3">
           <View
-            className={`w-10 h-10 rounded-full items-center justify-center ${
-              isActive ? "bg-white/20" : "bg-gray-100"
-            }`}
+            className={`w-10 h-10 rounded-full items-center justify-center ${isActive ? "bg-white/20" : "bg-gray-100"
+              }`}
           >
             <Ionicons name={icon} size={20} color={isActive ? "#ffffff" : "#6b7280"} />
           </View>

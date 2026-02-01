@@ -431,9 +431,8 @@ const InfoRow = ({
     style={({ pressed }) => ({
       opacity: pressed ? 0.7 : 1,
     })}
-    className={`flex-row items-center justify-between py-4 ${
-      !isLast ? "border-b border-gray-100" : ""
-    }`}
+    className={`flex-row items-center justify-between py-4 ${!isLast ? "border-b border-gray-100" : ""
+      }`}
   >
     <View className="flex-row items-center gap-3 flex-1">
       <View className="w-10 h-10 bg-[#6566fc]/10 rounded-full items-center justify-center">

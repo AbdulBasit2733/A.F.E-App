@@ -46,7 +46,7 @@ const InputField = ({
   <View className="gap-2">
     <Text className="text-xl font-semibold">{label}</Text>
     <TextInput
-      className="border border-slate-400 text-black font-medium rounded-md px-2 py-4 w-full"
+      className="border border-slate-400 text-black dark:text-white font-medium rounded-md px-2 py-4 w-full"
       onChangeText={onChangeText}
       value={value}
       placeholder={placeholder}
@@ -59,7 +59,7 @@ const InputField = ({
 const Register = () => {
 
   // console.log("Register");
-  
+
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [gender, setGender] = useState("Male");
@@ -262,9 +262,8 @@ const Register = () => {
           style={({ pressed }) => ({
             opacity: pressed || isLoading ? 0.7 : 1,
           })}
-          className={`px-4 py-3 rounded-lg mx-24 ${
-            isLoading ? "bg-gray-400" : "bg-primary"
-          }`}
+          className={`px-4 py-3 rounded-lg mx-24 ${isLoading ? "bg-gray-400" : "bg-primary"
+            }`}
         >
           {isLoading ? (
             <View className="flex-row items-center justify-center gap-2">

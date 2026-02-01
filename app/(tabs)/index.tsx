@@ -415,7 +415,7 @@ const Index = () => {
   return (
     <GestureHandlerRootView className="flex-1">
       <SafeAreaProvider className="bg-gray-50">
-        <SafeAreaView className="flex-1" style={{ padding: moderateScale(20) }}>
+        <SafeAreaView edges={['left', 'right']} className="flex-1" style={{ padding: moderateScale(20) }}>
           <View className="mb-6">
             <Text
               style={{ fontFamily: "Poppins-Regular" }}
@@ -565,9 +565,8 @@ const FilterOption = ({ label, value, selected, onPress }) => (
       transform: [{ scale: pressed ? 0.98 : 1 }],
       opacity: pressed ? 0.9 : 1,
     })}
-    className={`p-4 rounded-2xl border-2 flex-row items-center justify-between ${
-      selected ? "bg-primary border-primary" : "bg-white border-gray-200"
-    }`}
+    className={`p-4 rounded-2xl border-2 flex-row items-center justify-between ${selected ? "bg-primary border-primary" : "bg-white border-gray-200"
+      }`}
   >
     <Text className={`font-semibold text-base ${selected ? "text-white" : "text-gray-700"}`}>
       {label}

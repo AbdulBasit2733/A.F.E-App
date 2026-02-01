@@ -10,7 +10,7 @@ const ScreensLayout = () => {
           headerShown: false,
           animation: "slide_from_right",
           contentStyle: {
-            backgroundColor: "#f9fafb",
+            backgroundColor: "#ffffff",
           },
         }}
       >
